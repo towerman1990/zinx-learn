@@ -1,4 +1,4 @@
-package zinxlearn
+package iface
 
 type IServer interface {
 	Start()
@@ -6,4 +6,6 @@ type IServer interface {
 	Serve()
 
 	Stop()
+
+	AddRouter(router IRouter)
 }

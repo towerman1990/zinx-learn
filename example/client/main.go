@@ -9,7 +9,7 @@ import (
 func main() {
 	log.Print("client start...")
 	time.Sleep(time.Second)
-	conn, err := net.Dial("tcp", "127.0.0.1:8888")
+	conn, err := net.Dial("tcp", "127.0.0.1:2022")
 	if err != nil {
 		log.Fatalf("client net dial failed, error: %s", err.Error())
 	}
@@ -24,7 +24,7 @@ func main() {
 			log.Fatalf("client conn read data failed, error: %s", err.Error())
 		}
 
-		log.Printf("client receive server response: %s", buf)
+		log.Printf("client receive server response: %s", string(buf))
 
 		time.Sleep(time.Second)
 	}

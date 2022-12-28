@@ -1,9 +1,11 @@
-package zinxlearn
+package server
 
 import (
 	"fmt"
 	"log"
 	"net"
+
+	"towerman1990.cn/zinx-learn/iface"
 )
 
 type Server struct {
@@ -14,6 +16,8 @@ type Server struct {
 	IP string
 
 	Port int
+
+	Router iface.IRouter
 }
 
 var GlobalConnID uint32 = 0
@@ -48,7 +52,7 @@ func (s *Server) Start() {
 			}
 
 			connID := GlobalConnID
-			dealConn := NewConnection(conn, connID, MirrorRespond)
+			dealConn := NewConnection(conn, connID, s.Router)
 			GlobalConnID++
 
 			go dealConn.Open()
@@ -65,12 +69,17 @@ func (s *Server) Stop() {
 
 }
 
-func New(name string) IServer {
+func (s *Server) AddRouter(router iface.IRouter) {
+	s.Router = router
+}
+
+func New(name string) iface.IServer {
 	s := &Server{
 		Name:      name,
 		IPVersion: "tcp4",
 		IP:        "0.0.0.0",
-		Port:      8888,
+		Port:      2022,
+		Router:    nil,
 	}
 
 	return s

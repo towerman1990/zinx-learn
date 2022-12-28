@@ -1,11 +1,11 @@
-package zinxlearn
+package iface
 
 import "net"
 
 type IConnecton interface {
 	Open()
 
-	Close()
+	Close() error
 
 	GetTCPConnection() *net.TCPConn
 

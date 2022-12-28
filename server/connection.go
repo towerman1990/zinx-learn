@@ -1,8 +1,10 @@
-package zinxlearn
+package server
 
 import (
 	"log"
 	"net"
+
+	"towerman1990.cn/zinx-learn/iface"
 )
 
 type Connection struct {
@@ -10,9 +12,9 @@ type Connection struct {
 
 	ConnID uint32
 
-	isClosed bool
+	Router iface.IRouter
 
-	HandleFunc HandleFunc
+	isClosed bool
 
 	ExitChan chan bool
 }
@@ -24,15 +26,22 @@ func (c *Connection) Read() {
 
 	for {
 		buf := make([]byte, 512)
-		dataLen, err := c.Conn.Read(buf)
+		_, err := c.Conn.Read(buf)
 		if err != nil {
 			log.Printf("connection [%d] read data failed, error: %s", c.ConnID, err.Error())
 			continue
 		}
 
-		if err := c.HandleFunc(c.Conn, buf, dataLen); err != nil {
-			log.Printf("connection [%d] handle data failed, error: %s", c.ConnID, err.Error())
+		req := &Request{
+			conn: c,
+			data: buf,
 		}
+
+		go func(request iface.IRequest) {
+			c.Router.PreHandle(request)
+			c.Router.Handle(request)
+			c.Router.PostHandle(request)
+		}(req)
 	}
 }
 
@@ -69,13 +78,13 @@ func (c *Connection) Send(data []byte) error {
 	return nil
 }
 
-func NewConnection(conn *net.TCPConn, connID uint32, HandleFunc HandleFunc) *Connection {
+func NewConnection(conn *net.TCPConn, connID uint32, router iface.IRouter) *Connection {
 	c := &Connection{
-		Conn:       conn,
-		ConnID:     connID,
-		HandleFunc: HandleFunc,
-		isClosed:   false,
-		ExitChan:   make(chan bool),
+		Conn:     conn,
+		ConnID:   connID,
+		Router:   router,
+		isClosed: false,
+		ExitChan: make(chan bool),
 	}
 
 	return c
