@@ -1,11 +1,12 @@
 package server
 
 import (
+	"fmt"
+	"io"
 	"log"
 	"net"
 
 	"towerman1990.cn/zinx-learn/iface"
-	"towerman1990.cn/zinx-learn/utils"
 )
 
 type Connection struct {
@@ -21,21 +22,37 @@ type Connection struct {
 }
 
 func (c *Connection) Read() {
-	log.Printf("connection [%d] is reading data", c.ConnID)
+	log.Printf("reading data from connection [%d] ", c.ConnID)
 	defer log.Printf("connection [%d] stopt reading data", c.ConnID)
 	defer c.Close()
 
 	for {
-		buf := make([]byte, utils.GlobalObject.MaxPackageSize)
-		_, err := c.Conn.Read(buf)
-		if err != nil {
+		dataPack := NewDataPack()
+		headData := make([]byte, dataPack.GetHeadLength())
+		if _, err := io.ReadFull(c.GetTCPConnection(), headData); err != nil {
 			log.Printf("connection [%d] read data failed, error: %s", c.ConnID, err.Error())
-			continue
+			break
 		}
+
+		msg, err := dataPack.UnPack(headData)
+		if err != nil {
+			log.Printf("conn [%d] unpack data failed, error: %s", c.ConnID, err.Error())
+			break
+		}
+
+		var data []byte
+		if msg.GetDataLength() > 0 {
+			data = make([]byte, msg.GetDataLength())
+			if _, err = io.ReadFull(c.GetTCPConnection(), data); err != nil {
+				log.Printf("conn [%d] read data failed, error: %s", c.ConnID, err.Error())
+				break
+			}
+		}
+		msg.SetData(data)
 
 		req := &Request{
 			conn: c,
-			data: buf,
+			msg:  msg,
 		}
 
 		go func(request iface.IRequest) {
@@ -44,6 +61,24 @@ func (c *Connection) Read() {
 			c.Router.PostHandle(request)
 		}(req)
 	}
+}
+
+func (c *Connection) SendMsg(msgID uint32, data []byte) (err error) {
+	if c.isClosed {
+		return fmt.Errorf("connection [%d] has closed", c.ConnID)
+	}
+
+	dataPack := NewDataPack()
+	binaryMsg, err := dataPack.Pack(NewMessage(msgID, data))
+	if err != nil {
+		return fmt.Errorf("conn [%d] packed message [%d] failed, error: %s", c.ConnID, msgID, err.Error())
+	}
+
+	if _, err := c.GetTCPConnection().Write(binaryMsg); err != nil {
+		return fmt.Errorf("conn [%d] wrote message [%d] failed, error: %s", c.ConnID, msgID, err.Error())
+	}
+
+	return
 }
 
 func (c *Connection) Open() {

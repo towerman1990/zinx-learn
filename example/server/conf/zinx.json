@@ -1,6 +1,6 @@
 {
     "Name": "Zinx Learn Global Configuration",
     "Host": "127.0.0.1",
-    "Port": 2023,
+    "Port": 2022,
     "MaxConn": 512
 }
