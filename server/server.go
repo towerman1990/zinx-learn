@@ -6,6 +6,7 @@ import (
 	"net"
 
 	"towerman1990.cn/zinx-learn/iface"
+	"towerman1990.cn/zinx-learn/utils"
 )
 
 type Server struct {
@@ -75,10 +76,10 @@ func (s *Server) AddRouter(router iface.IRouter) {
 
 func New(name string) iface.IServer {
 	s := &Server{
-		Name:      name,
+		Name:      utils.GlobalObject.Name,
 		IPVersion: "tcp4",
-		IP:        "0.0.0.0",
-		Port:      2022,
+		IP:        utils.GlobalObject.Host,
+		Port:      utils.GlobalObject.Port,
 		Router:    nil,
 	}
 

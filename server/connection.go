@@ -5,6 +5,7 @@ import (
 	"net"
 
 	"towerman1990.cn/zinx-learn/iface"
+	"towerman1990.cn/zinx-learn/utils"
 )
 
 type Connection struct {
@@ -25,7 +26,7 @@ func (c *Connection) Read() {
 	defer c.Close()
 
 	for {
-		buf := make([]byte, 512)
+		buf := make([]byte, utils.GlobalObject.MaxPackageSize)
 		_, err := c.Conn.Read(buf)
 		if err != nil {
 			log.Printf("connection [%d] read data failed, error: %s", c.ConnID, err.Error())
