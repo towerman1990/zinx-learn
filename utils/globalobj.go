@@ -15,9 +15,11 @@ type GlobalObj struct {
 	Port int
 	Name string
 
-	Version        string
-	MaxConn        int
-	MaxPackageSize uint32
+	Version          string
+	MaxConn          int
+	MaxPackageSize   uint32
+	WorkerPoolSize   uint32
+	MaxWorkerTaskLen uint32
 }
 
 var GlobalObject *GlobalObj
@@ -33,12 +35,14 @@ func (g *GlobalObj) Reload() (err error) {
 
 func init() {
 	GlobalObject = &GlobalObj{
-		Name:           "Zinx Learn",
-		Version:        "v0.4",
-		Port:           2022,
-		Host:           "0.0.0.0",
-		MaxConn:        1024,
-		MaxPackageSize: 4096,
+		Name:             "Zinx Learn",
+		Version:          "v0.4",
+		Port:             2022,
+		Host:             "0.0.0.0",
+		MaxConn:          1024,
+		MaxPackageSize:   4096,
+		WorkerPoolSize:   12,
+		MaxWorkerTaskLen: 1024,
 	}
 
 	if err := GlobalObject.Reload(); err != nil {

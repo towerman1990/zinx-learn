@@ -1,6 +1,9 @@
 {
-    "Name": "v0.7 reader & writer",
+    "Name": "v0.8 worker pool",
     "Host": "127.0.0.1",
     "Port": 2022,
-    "MaxConn": 512
+    "MaxConn": 512,
+    "MaxPackageSize": 4096,
+	"WorkerPoolSize": 12,
+	"MaxWorkerTaskLen": 1024
 }

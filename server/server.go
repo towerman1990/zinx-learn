@@ -33,6 +33,8 @@ func MirrorRespond(conn *net.TCPConn, data []byte, dataLen int) (err error) {
 func (s *Server) Start() {
 	log.Printf("server [%s] start", s.Name)
 	go func() {
+		s.MessageHandler.StartWorkPool()
+
 		addr, err := net.ResolveTCPAddr(s.IPVersion, fmt.Sprintf("%s:%d", s.IP, s.Port))
 		if err != nil {
 			log.Fatalf("server [%s] resolve TCP addr failed, error: %s", s.Name, err.Error())

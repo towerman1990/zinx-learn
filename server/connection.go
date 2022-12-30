@@ -7,6 +7,7 @@ import (
 	"net"
 
 	"towerman1990.cn/zinx-learn/iface"
+	"towerman1990.cn/zinx-learn/utils"
 )
 
 type Connection struct {
@@ -57,7 +58,11 @@ func (c *Connection) OpenReader() {
 			msg:  msg,
 		}
 
-		go c.MessageHandler.ExecHandler(req)
+		if utils.GlobalObject.WorkerPoolSize > 0 {
+			c.MessageHandler.SendMsgToTaskQueue(req)
+		} else {
+			go c.MessageHandler.ExecHandler(req)
+		}
 	}
 }
 
