@@ -1,11 +1,7 @@
 package iface
 
-type IServer interface {
-	Start()
-
-	Serve()
-
-	Stop()
+type IMessageHandler interface {
+	ExecHandler(request IRequest)
 
 	AddRouter(msgID uint32, router IRouter) error
 }

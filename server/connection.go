@@ -14,7 +14,7 @@ type Connection struct {
 
 	ConnID uint32
 
-	Router iface.IRouter
+	MessageHandler iface.IMessageHandler
 
 	isClosed bool
 
@@ -55,11 +55,7 @@ func (c *Connection) Read() {
 			msg:  msg,
 		}
 
-		go func(request iface.IRequest) {
-			c.Router.PreHandle(request)
-			c.Router.Handle(request)
-			c.Router.PostHandle(request)
-		}(req)
+		go c.MessageHandler.ExecHandler(req)
 	}
 }
 
@@ -110,17 +106,13 @@ func (c *Connection) RemoteAddr() net.Addr {
 	return c.Conn.RemoteAddr()
 }
 
-func (c *Connection) Send(data []byte) error {
-	return nil
-}
-
-func NewConnection(conn *net.TCPConn, connID uint32, router iface.IRouter) *Connection {
+func NewConnection(conn *net.TCPConn, connID uint32, messageHandler iface.IMessageHandler) *Connection {
 	c := &Connection{
-		Conn:     conn,
-		ConnID:   connID,
-		Router:   router,
-		isClosed: false,
-		ExitChan: make(chan bool),
+		Conn:           conn,
+		ConnID:         connID,
+		MessageHandler: messageHandler,
+		isClosed:       false,
+		ExitChan:       make(chan bool),
 	}
 
 	return c

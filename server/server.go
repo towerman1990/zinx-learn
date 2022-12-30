@@ -18,7 +18,7 @@ type Server struct {
 
 	Port int
 
-	Router iface.IRouter
+	MessageHandler iface.IMessageHandler
 }
 
 var GlobalConnID uint32 = 0
@@ -40,10 +40,10 @@ func (s *Server) Start() {
 
 		listener, err := net.ListenTCP(s.IPVersion, addr)
 		if err != nil {
-			log.Fatalf("server [%s] listen TCP failed, error: %s", s.Name, err.Error())
+			log.Fatalf("server [%s] listened TCP failed, error: %s", s.Name, err.Error())
 		}
 
-		log.Printf("server [%s] started successfully and it's listenning at IP: [%s], Port: [%d]", s.Name, s.IP, s.Port)
+		log.Printf("server [%s] is listenning at IP: [%s], Port: [%d]", s.Name, s.IP, s.Port)
 
 		for {
 			conn, err := listener.AcceptTCP()
@@ -53,7 +53,7 @@ func (s *Server) Start() {
 			}
 
 			connID := GlobalConnID
-			dealConn := NewConnection(conn, connID, s.Router)
+			dealConn := NewConnection(conn, connID, s.MessageHandler)
 			GlobalConnID++
 
 			go dealConn.Open()
@@ -70,17 +70,17 @@ func (s *Server) Stop() {
 
 }
 
-func (s *Server) AddRouter(router iface.IRouter) {
-	s.Router = router
+func (s *Server) AddRouter(msgID uint32, router iface.IRouter) error {
+	return s.MessageHandler.AddRouter(msgID, router)
 }
 
 func New(name string) iface.IServer {
 	s := &Server{
-		Name:      utils.GlobalObject.Name,
-		IPVersion: "tcp4",
-		IP:        utils.GlobalObject.Host,
-		Port:      utils.GlobalObject.Port,
-		Router:    nil,
+		Name:           utils.GlobalObject.Name,
+		IPVersion:      "tcp4",
+		IP:             utils.GlobalObject.Host,
+		Port:           utils.GlobalObject.Port,
+		MessageHandler: NewMessageHandler(),
 	}
 
 	return s

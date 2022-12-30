@@ -11,15 +11,22 @@ import (
 
 func main() {
 	log.Print("client start...")
-	var msgID uint32 = 0
 	conn, err := net.Dial("tcp", "127.0.0.1:2022")
 	if err != nil {
 		log.Fatalf("client net dial failed, error: %s", err.Error())
 	}
 
 	for {
+		var msgID int64
+		var data []byte
+		if msgID = time.Now().Unix() % 2; msgID == 0 {
+			data = []byte("ping message")
+		} else {
+			data = []byte("hello message")
+		}
+		message := server.NewMessage(uint32(msgID), data)
 		dataPack := server.NewDataPack()
-		binaryMsg, err := dataPack.Pack(server.NewMessage(msgID, []byte("I'm from earth")))
+		binaryMsg, err := dataPack.Pack(message)
 		if err != nil {
 			log.Fatalf("pack data failed, error: %s", err.Error())
 		}
@@ -27,8 +34,6 @@ func main() {
 		if _, err := conn.Write(binaryMsg); err != nil {
 			log.Fatalf("client conn write data failed, error: %s", err.Error())
 		}
-
-		msgID++
 
 		binaryHead := make([]byte, dataPack.GetHeadLength())
 		if _, err := io.ReadFull(conn, binaryHead); err != nil {
