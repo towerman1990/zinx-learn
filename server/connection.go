@@ -18,10 +18,12 @@ type Connection struct {
 
 	isClosed bool
 
+	msgChan chan []byte
+
 	ExitChan chan bool
 }
 
-func (c *Connection) Read() {
+func (c *Connection) OpenReader() {
 	log.Printf("reading data from connection [%d] ", c.ConnID)
 	defer log.Printf("connection [%d] stopt reading data", c.ConnID)
 	defer c.Close()
@@ -59,6 +61,23 @@ func (c *Connection) Read() {
 	}
 }
 
+func (c *Connection) OpenWriter() {
+	log.Println("writer goroutine opened")
+	defer log.Printf("remote client [%s] closed", c.GetTCPConnection().RemoteAddr().String())
+
+	for {
+		select {
+		case data := <-c.msgChan:
+			if _, err := c.Conn.Write(data); err != nil {
+				log.Printf("write data failed, error: %s", err.Error())
+				return
+			}
+		case <-c.ExitChan:
+			return
+		}
+	}
+}
+
 func (c *Connection) SendMsg(msgID uint32, data []byte) (err error) {
 	if c.isClosed {
 		return fmt.Errorf("connection [%d] has closed", c.ConnID)
@@ -70,16 +89,15 @@ func (c *Connection) SendMsg(msgID uint32, data []byte) (err error) {
 		return fmt.Errorf("conn [%d] packed message [%d] failed, error: %s", c.ConnID, msgID, err.Error())
 	}
 
-	if _, err := c.GetTCPConnection().Write(binaryMsg); err != nil {
-		return fmt.Errorf("conn [%d] wrote message [%d] failed, error: %s", c.ConnID, msgID, err.Error())
-	}
+	c.msgChan <- binaryMsg
 
 	return
 }
 
 func (c *Connection) Open() {
 	log.Printf("open connection [%d]", c.ConnID)
-	c.Read()
+	go c.OpenReader()
+	go c.OpenWriter()
 }
 
 func (c *Connection) Close() (err error) {
@@ -90,8 +108,13 @@ func (c *Connection) Close() (err error) {
 	}
 
 	c.isClosed = true
+	c.Conn.Close()
+	c.ExitChan <- true
 
-	return c.Conn.Close()
+	close(c.ExitChan)
+	close(c.msgChan)
+
+	return
 }
 
 func (c *Connection) GetTCPConnection() *net.TCPConn {
@@ -112,6 +135,7 @@ func NewConnection(conn *net.TCPConn, connID uint32, messageHandler iface.IMessa
 		ConnID:         connID,
 		MessageHandler: messageHandler,
 		isClosed:       false,
+		msgChan:        make(chan []byte),
 		ExitChan:       make(chan bool),
 	}
 

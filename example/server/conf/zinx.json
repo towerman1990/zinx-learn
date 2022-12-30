@@ -1,5 +1,5 @@
 {
-    "Name": "v0.6 multiple router",
+    "Name": "v0.7 reader & writer",
     "Host": "127.0.0.1",
     "Port": 2022,
     "MaxConn": 512
