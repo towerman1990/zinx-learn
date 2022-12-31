@@ -2,7 +2,7 @@ package iface
 
 import "net"
 
-type IConnecton interface {
+type IConnection interface {
 	Open()
 
 	Close() error

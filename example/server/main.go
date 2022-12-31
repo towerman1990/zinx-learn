@@ -31,8 +31,20 @@ func (pr *HelloRouter) Handle(request iface.IRequest) {
 	request.GetConnection().SendMsg(200, []byte(fmt.Sprintf("recieved message [%d] successfully", request.GetMessageID())))
 }
 
+func CallOnConnectionOpen(conn iface.IConnection) {
+	log.Println("CallOnConnectionOpen is called")
+	conn.SendMsg(200, []byte("CallOnConnectionOpen is called"))
+}
+
+func CallOnConnectionClose(conn iface.IConnection) {
+	log.Println("CallOnConnectionClose is called")
+}
+
 func main() {
 	s := server.New(utils.GlobalObject.Name)
+	s.SetOnConnOpen(CallOnConnectionOpen)
+	s.SetOnConnClose(CallOnConnectionClose)
+
 	s.AddRouter(0, &PingRouter{})
 	s.AddRouter(1, &HelloRouter{})
 	s.Serve()

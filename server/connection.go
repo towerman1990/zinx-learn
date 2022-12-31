@@ -11,6 +11,8 @@ import (
 )
 
 type Connection struct {
+	Server iface.IServer
+
 	Conn *net.TCPConn
 
 	ConnID uint32
@@ -101,8 +103,11 @@ func (c *Connection) SendMsg(msgID uint32, data []byte) (err error) {
 
 func (c *Connection) Open() {
 	log.Printf("open connection [%d]", c.ConnID)
+
 	go c.OpenReader()
 	go c.OpenWriter()
+
+	c.Server.CallOnConnOpen(c)
 }
 
 func (c *Connection) Close() (err error) {
@@ -113,8 +118,12 @@ func (c *Connection) Close() (err error) {
 	}
 
 	c.isClosed = true
+	c.Server.CallOnConnClose(c)
+
 	c.Conn.Close()
 	c.ExitChan <- true
+
+	c.Server.GetConnManager().Remove(c)
 
 	close(c.ExitChan)
 	close(c.msgChan)
@@ -134,8 +143,9 @@ func (c *Connection) RemoteAddr() net.Addr {
 	return c.Conn.RemoteAddr()
 }
 
-func NewConnection(conn *net.TCPConn, connID uint32, messageHandler iface.IMessageHandler) *Connection {
+func NewConnection(server iface.IServer, conn *net.TCPConn, connID uint32, messageHandler iface.IMessageHandler) *Connection {
 	c := &Connection{
+		Server:         server,
 		Conn:           conn,
 		ConnID:         connID,
 		MessageHandler: messageHandler,
@@ -143,6 +153,8 @@ func NewConnection(conn *net.TCPConn, connID uint32, messageHandler iface.IMessa
 		msgChan:        make(chan []byte),
 		ExitChan:       make(chan bool),
 	}
+
+	c.Server.GetConnManager().Add(c)
 
 	return c
 }

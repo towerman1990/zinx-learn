@@ -19,6 +19,12 @@ type Server struct {
 	Port int
 
 	MessageHandler iface.IMessageHandler
+
+	ConnManager iface.IConnManager
+
+	OnConnOpen func(conn iface.IConnection)
+
+	OnConnClose func(conn iface.IConnection)
 }
 
 var GlobalConnID uint32 = 0
@@ -53,9 +59,15 @@ func (s *Server) Start() {
 				log.Printf("listener accept TCP failed, error: %s", err.Error())
 				continue
 			}
+			log.Printf("conn count = [%d]", s.ConnManager.Count())
+			if s.ConnManager.Count() >= utils.GlobalObject.MaxConn {
+				// TODO: return beyond max connection message
+				conn.Close()
+				continue
+			}
 
 			connID := GlobalConnID
-			dealConn := NewConnection(conn, connID, s.MessageHandler)
+			dealConn := NewConnection(s, conn, connID, s.MessageHandler)
 			GlobalConnID++
 
 			go dealConn.Open()
@@ -69,11 +81,35 @@ func (s *Server) Serve() {
 }
 
 func (s *Server) Stop() {
-
+	s.ConnManager.Clear()
 }
 
 func (s *Server) AddRouter(msgID uint32, router iface.IRouter) error {
 	return s.MessageHandler.AddRouter(msgID, router)
+}
+
+func (s *Server) GetConnManager() iface.IConnManager {
+	return s.ConnManager
+}
+
+func (s *Server) SetOnConnOpen(hookFunc func(conn iface.IConnection)) {
+	s.OnConnOpen = hookFunc
+}
+
+func (s *Server) SetOnConnClose(hookFunc func(conn iface.IConnection)) {
+	s.OnConnClose = hookFunc
+}
+
+func (s *Server) CallOnConnOpen(conn iface.IConnection) {
+	if s.OnConnOpen != nil {
+		s.OnConnOpen(conn)
+	}
+}
+
+func (s *Server) CallOnConnClose(conn iface.IConnection) {
+	if s.OnConnClose != nil {
+		s.OnConnClose(conn)
+	}
 }
 
 func New(name string) iface.IServer {
@@ -83,6 +119,7 @@ func New(name string) iface.IServer {
 		IP:             utils.GlobalObject.Host,
 		Port:           utils.GlobalObject.Port,
 		MessageHandler: NewMessageHandler(),
+		ConnManager:    NewConnManager(),
 	}
 
 	return s

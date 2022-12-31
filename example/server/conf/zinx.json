@@ -1,8 +1,8 @@
 {
-    "Name": "v0.8 worker pool",
+    "Name": "v0.9 add connection manager and hook function",
     "Host": "127.0.0.1",
     "Port": 2022,
-    "MaxConn": 512,
+    "MaxConn": 2,
     "MaxPackageSize": 4096,
 	"WorkerPoolSize": 12,
 	"MaxWorkerTaskLen": 1024

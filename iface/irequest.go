@@ -1,7 +1,7 @@
 package iface
 
 type IRequest interface {
-	GetConnection() IConnecton
+	GetConnection() IConnection
 
 	GetMessageData() []byte
 

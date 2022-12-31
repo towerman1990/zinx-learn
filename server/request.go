@@ -3,12 +3,12 @@ package server
 import "towerman1990.cn/zinx-learn/iface"
 
 type Request struct {
-	conn iface.IConnecton
+	conn iface.IConnection
 
 	msg iface.IMessage
 }
 
-func (r *Request) GetConnection() iface.IConnecton {
+func (r *Request) GetConnection() iface.IConnection {
 	return r.conn
 }
 
