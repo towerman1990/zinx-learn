@@ -34,10 +34,30 @@ func (pr *HelloRouter) Handle(request iface.IRequest) {
 func CallOnConnectionOpen(conn iface.IConnection) {
 	log.Println("CallOnConnectionOpen is called")
 	conn.SendMsg(200, []byte("CallOnConnectionOpen is called"))
+
+	conn.SetProperty("name", "andy")
+	conn.SetProperty("age", "22")
 }
 
 func CallOnConnectionClose(conn iface.IConnection) {
 	log.Println("CallOnConnectionClose is called")
+	if property, err := conn.GetProperty("name"); err == nil {
+		log.Printf("name = %s", property)
+	} else {
+		log.Printf("get property name failed, error: %s", err.Error())
+	}
+
+	if property, err := conn.GetProperty("age"); err == nil {
+		log.Printf("age = %s", property)
+	} else {
+		log.Printf("get property age failed, error: %s", err.Error())
+	}
+
+	if property, err := conn.GetProperty("mobile"); err == nil {
+		log.Printf("mobile = %s", property)
+	} else {
+		log.Printf("get property mobile failed, error: %s", err.Error())
+	}
 }
 
 func main() {

@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net"
+	"sync"
 
 	"towerman1990.cn/zinx-learn/iface"
 	"towerman1990.cn/zinx-learn/utils"
@@ -24,6 +25,10 @@ type Connection struct {
 	msgChan chan []byte
 
 	ExitChan chan bool
+
+	propertyMap map[string]interface{}
+
+	propertyLock sync.RWMutex
 }
 
 func (c *Connection) OpenReader() {
@@ -143,6 +148,31 @@ func (c *Connection) RemoteAddr() net.Addr {
 	return c.Conn.RemoteAddr()
 }
 
+func (c *Connection) SetProperty(key string, value interface{}) {
+	c.propertyLock.RLock()
+	defer c.propertyLock.RUnlock()
+
+	c.propertyMap[key] = value
+}
+
+func (c *Connection) GetProperty(key string) (value interface{}, err error) {
+	c.propertyLock.RLock()
+	defer c.propertyLock.RUnlock()
+
+	if value, ok := c.propertyMap[key]; ok {
+		return value, err
+	}
+
+	return value, fmt.Errorf("key [%s] property not found", key)
+}
+
+func (c *Connection) RemoveProperty(key string) {
+	c.propertyLock.Lock()
+	defer c.propertyLock.Unlock()
+
+	delete(c.propertyMap, key)
+}
+
 func NewConnection(server iface.IServer, conn *net.TCPConn, connID uint32, messageHandler iface.IMessageHandler) *Connection {
 	c := &Connection{
 		Server:         server,
@@ -152,6 +182,7 @@ func NewConnection(server iface.IServer, conn *net.TCPConn, connID uint32, messa
 		isClosed:       false,
 		msgChan:        make(chan []byte),
 		ExitChan:       make(chan bool),
+		propertyMap:    map[string]interface{}{},
 	}
 
 	c.Server.GetConnManager().Add(c)
