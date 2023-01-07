@@ -1,6 +1,6 @@
 package server
 
-import "towerman1990.cn/zinx-learn/iface"
+import "github.com/towerman1990/zinx-learn/iface"
 
 type Message struct {
 	ID         uint32

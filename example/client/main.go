@@ -6,7 +6,7 @@ import (
 	"net"
 	"time"
 
-	"towerman1990.cn/zinx-learn/server"
+	"github.com/towerman1990/zinx-learn/server"
 )
 
 func main() {

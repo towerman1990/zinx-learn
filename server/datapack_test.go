@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"towerman1990.cn/zinx-learn/utils"
+	"github.com/towerman1990/zinx-learn/utils"
 )
 
 func TestDataPack(t *testing.T) {

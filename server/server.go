@@ -5,8 +5,8 @@ import (
 	"log"
 	"net"
 
-	"towerman1990.cn/zinx-learn/iface"
-	"towerman1990.cn/zinx-learn/utils"
+	"github.com/towerman1990/zinx-learn/iface"
+	"github.com/towerman1990/zinx-learn/utils"
 )
 
 type Server struct {

@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"towerman1990.cn/zinx-learn/iface"
+	"github.com/towerman1990/zinx-learn/iface"
 )
 
 type GlobalObj struct {

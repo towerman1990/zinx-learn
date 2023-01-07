@@ -1,3 +1,3 @@
-module towerman1990.cn/zinx-learn
+module github.com/towerman1990/zinx-learn
 
 go 1.19
