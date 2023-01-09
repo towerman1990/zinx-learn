@@ -18,7 +18,7 @@ func (mh *MessageHandler) ExecHandler(request iface.IRequest) {
 	msgID := request.GetMessageID()
 	handler, ok := mh.Handlers[msgID]
 	if !ok {
-		fmt.Printf("msgID [%d] hasn't been added", msgID)
+		fmt.Printf("msgID [%d] hasn't been added\n", msgID)
 		return
 	}
 
